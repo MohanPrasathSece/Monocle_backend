@@ -26,6 +26,13 @@ export interface User {
             apiKey?: string;
             lastSync?: Date;
         };
+        microsoft?: {
+            connected: boolean;
+            lastSync?: Date;
+            email?: string;
+            accessToken?: string;
+            refreshToken?: string;
+        };
     };
 }
 

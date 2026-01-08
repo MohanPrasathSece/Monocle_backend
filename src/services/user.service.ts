@@ -316,11 +316,40 @@ export class UserService {
                         workHoursEnd: 17,
                         focusTimeGoal: 120
                     },
+                    integrations: {
+                        microsoft: {
+                            connected: true,
+                            lastSync: new Date(),
+                            email: email,
+                            accessToken: accessToken
+                        }
+                    }
                 });
                 await user.save();
                 await this.seedInitialData(user.id);
             } else {
                 user.lastLogin = new Date();
+
+                // Update Microsoft integration
+                if (!user.integrations) {
+                    user.integrations = {
+                        microsoft: {
+                            connected: true,
+                            lastSync: new Date(),
+                            email: email,
+                            accessToken: accessToken
+                        }
+                    };
+                } else {
+                    user.integrations.microsoft = {
+                        ...user.integrations?.microsoft,
+                        connected: true,
+                        lastSync: new Date(),
+                        email: email,
+                        accessToken: accessToken
+                    };
+                }
+
                 await user.save();
             }
 

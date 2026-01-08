@@ -29,6 +29,13 @@ const UserSchema: Schema = new Schema({
             accessToken: { type: String },
             refreshToken: { type: String }
         },
+        microsoft: {
+            connected: { type: Boolean, default: false },
+            lastSync: { type: Date },
+            email: { type: String },
+            accessToken: { type: String },
+            refreshToken: { type: String }
+        },
         notion: {
             connected: { type: Boolean, default: false },
             apiKey: { type: String }, // Storing user provided key for simplicity

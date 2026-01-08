@@ -28,4 +28,26 @@ export class IntegrationController {
             res.status(500).json({ error: error.message });
         }
     }
+    static async syncMicrosoft(req: Request, res: Response) {
+        try {
+            const userId = (req as any).user?.id;
+            if (!userId) {
+                res.status(401).json({ error: 'Unauthorized' });
+                return;
+            }
+
+            const { accessToken } = req.body;
+            const teamsCount = await IntegrationService.syncTeams(userId, accessToken);
+
+            res.status(200).json({
+                message: 'Microsoft sync completed',
+                data: {
+                    teamsSynced: teamsCount
+                }
+            });
+        } catch (error: any) {
+            console.error('Microsoft Integration error:', error.message);
+            res.status(500).json({ error: error.message });
+        }
+    }
 }

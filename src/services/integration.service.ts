@@ -313,4 +313,102 @@ Respond ONLY in JSON format:
             return 0;
         }
     }
+    /**
+     * Sync Microsoft Teams messages for a user
+     */
+    static async syncTeams(userId: string, overrideAccessToken?: string): Promise<number> {
+        const user = await UserModel.findById(userId);
+        if (!user) return 0;
+
+        const integrations = (user as any).integrations;
+        const accessToken = overrideAccessToken || integrations?.microsoft?.accessToken;
+
+        if (!accessToken) {
+            console.error('No Microsoft access token found for user:', userId);
+            return 0;
+        }
+
+        try {
+            // Fetch recent chats from Microsoft Graph
+            const response = await fetch('https://graph.microsoft.com/v1.0/me/chats?$expand=lastMessagePreview&$top=10&$orderby=lastUpdatedDateTime desc', {
+                headers: {
+                    'Authorization': `Bearer ${accessToken}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            if (!response.ok) {
+                if (response.status === 401) {
+                    console.error('Microsoft token expired');
+                    // In a real app, we would use refresh token here
+                    return 0;
+                }
+                const errorText = await response.text();
+                throw new Error(`Microsoft Graph API error: ${response.status} ${errorText}`);
+            }
+
+            const data = await response.json();
+            const chats = data.value || [];
+            let count = 0;
+
+            for (const chat of chats) {
+                const lastMessage = chat.lastMessagePreview;
+                if (!lastMessage || !lastMessage.body || !lastMessage.body.content) continue;
+
+                const msgId = lastMessage.id;
+                const existing = await WorkItemModel.findOne({ userId, 'metadata.microsoftId': msgId });
+                if (existing) continue;
+
+                // Determine title (chat name or sender)
+                let title = chat.topic;
+                if (!title && chat.chatType === 'oneOnOne') {
+                    // Start of discussion with specific person
+                    title = lastMessage.from?.user?.displayName || 'Teams Chat';
+                } else if (!title) {
+                    title = 'Group Chat';
+                }
+
+                const externalThreadId = await this.getOrCreateExternalThread(userId);
+
+                const newItem = await WorkItemService.createItem({
+                    userId,
+                    type: 'message',
+                    title: title,
+                    source: 'Microsoft Teams',
+                    timestamp: new Date(lastMessage.createdDateTime || new Date()),
+                    preview: lastMessage.body.content,
+                    isRead: false, // Assume unread if we are just fetching it now
+                    priority: 'medium',
+                    threadId: externalThreadId,
+                    metadata: {
+                        microsoftId: msgId,
+                        chatId: chat.id,
+                        webUrl: chat.webUrl
+                    }
+                });
+
+                // Update thread last activity and item list
+                await WorkThreadModel.findByIdAndUpdate(externalThreadId, {
+                    $addToSet: { itemIds: (newItem as any).id || (newItem as any)._id },
+                    lastActivity: new Date()
+                });
+
+                count++;
+            }
+
+            // Update last sync time
+            if (user.integrations?.microsoft) {
+                // We need to use updateOne because we might rely on the 'any' cast above for runtime, but cleaner for TS
+                await UserModel.updateOne(
+                    { _id: userId },
+                    { $set: { 'integrations.microsoft.lastSync': new Date() } }
+                );
+            }
+
+            return count;
+        } catch (error: any) {
+            console.error('Microsoft Teams sync error:', error.message);
+            return 0;
+        }
+    }
 }
