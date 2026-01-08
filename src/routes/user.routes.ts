@@ -15,6 +15,7 @@ router.post('/reset-password', UserController.resetPassword);
 
 // Protected routes
 router.use(authMiddleware as any);
+router.post('/seed', UserController.seedData);
 router.post('/', UserController.createUser);
 router.get('/:id', UserController.getUser);
 router.get('/email/search', UserController.getUserByEmail);

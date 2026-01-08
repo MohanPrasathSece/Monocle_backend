@@ -7,6 +7,7 @@ import { UserModel } from '../models/User';
 import { WorkThreadModel } from '../models/WorkThread';
 import { WorkItemModel } from '../models/WorkItem';
 import { MailService } from './mail.service';
+import { WorkItemService } from './workitem.service';
 
 // Initialized inside methods to ensure env vars are loaded
 let googleClient: OAuth2Client | null = null;
@@ -407,6 +408,130 @@ export class UserService {
             console.error('Error creating user in MongoDB:', error.message);
             throw error;
         }
+    }
+
+    /**
+     * Seed rich realistic data for demonstration
+     */
+    static async seedRichData(userId: string) {
+        const now = new Date();
+
+        // 1. Thread: Engineering - Backend Migration
+        const engThread = new WorkThreadModel({
+            userId,
+            title: 'Backend Migration to Node.js',
+            description: 'Migrating legacy services to the new TypeScript backend architecture.',
+            priority: 'high',
+            progress: 65,
+            lastActivity: now,
+            deadline: new Date(now.getFullYear(), now.getMonth() + 1, 1),
+            itemIds: [],
+            relatedPeople: ['Alex Rivera', 'Sarah Chen'],
+            tags: ['Engineering', 'Backend', 'Migration']
+        });
+        await engThread.save();
+
+        const engItems = [
+            {
+                type: 'message',
+                title: 'Migration Sync - Architectural Review',
+                source: 'Microsoft Teams',
+                preview: 'Alex: We need to finalize the database schema before the sprint starts. I have posted the draft in the channel.',
+                priority: 'high',
+                metadata: { microsoftId: 'msg_123', chatId: 'chat_eng_sync' }
+            },
+            {
+                type: 'message',
+                title: 'PR #405 Review',
+                source: 'Microsoft Teams',
+                preview: 'Sarah: logic looks good, but please add more tests for the user controller.',
+                priority: 'medium',
+                metadata: { microsoftId: 'msg_124', chatId: 'chat_eng_sync' }
+            },
+            {
+                type: 'email',
+                title: 'API Documentation Standards',
+                source: 'Gmail',
+                preview: 'Please follow the new OpenAPI 3.0 spec for all new endpoints. The documentation pipeline has been updated.',
+                priority: 'medium',
+                metadata: { googleId: 'email_567' }
+            }
+        ];
+
+        for (const item of engItems) {
+            const newItem = await WorkItemService.createItem({
+                userId,
+                threadId: engThread.id,
+                type: item.type as any,
+                title: item.title,
+                source: item.source,
+                timestamp: new Date(now.getTime() - Math.random() * 86400000 * 2), // Last 2 days
+                preview: item.preview,
+                priority: item.priority as any,
+                isRead: false,
+                metadata: item.metadata
+            });
+            await WorkThreadModel.findByIdAndUpdate(engThread.id, {
+                $addToSet: { itemIds: (newItem as any).id },
+                lastActivity: new Date()
+            });
+        }
+
+        // 2. Thread: Product - Q1 Roadmap
+        const prodThread = new WorkThreadModel({
+            userId,
+            title: 'Q1 2026 Product Roadmap',
+            description: 'Planning features and milestones for the first quarter.',
+            priority: 'medium',
+            progress: 30,
+            lastActivity: new Date(now.getTime() - 86400000),
+            deadline: new Date(now.getFullYear(), now.getMonth() + 2, 15),
+            itemIds: [],
+            relatedPeople: ['Product Team', 'Marketing'],
+            tags: ['Product', 'Planning', 'Strategy']
+        });
+        await prodThread.save();
+
+        const prodItems = [
+            {
+                type: 'calendar',
+                title: 'Roadmap Kickoff',
+                source: 'Google Calendar',
+                preview: 'Agenda: Review Q4 metrics, Brainstorm Q1 themes, Resource allocation.',
+                priority: 'high',
+                timestamp: new Date(now.getTime() + 86400000), // Tomorrow
+                metadata: { googleId: 'cal_888' }
+            },
+            {
+                type: 'message',
+                title: 'Feature Request: Dark Mode',
+                source: 'Microsoft Teams',
+                preview: 'Marketing says customers are asking for Dark Mode. Can we fit this in Q1?',
+                priority: 'low',
+                timestamp: new Date(now.getTime() - 86400000 * 3),
+                metadata: { microsoftId: 'msg_999' }
+            }
+        ];
+
+        for (const item of prodItems) {
+            const newItem = await WorkItemService.createItem({
+                userId,
+                threadId: prodThread.id,
+                type: item.type as any,
+                title: item.title,
+                source: item.source,
+                timestamp: item.timestamp || new Date(),
+                preview: item.preview,
+                priority: item.priority as any,
+                isRead: true,
+                metadata: item.metadata
+            });
+            await WorkThreadModel.findByIdAndUpdate(prodThread.id, {
+                $addToSet: { itemIds: (newItem as any).id }
+            });
+        }
+
+        return { message: "Seeded realistic data successfully" };
     }
 
     private static async seedInitialData(userId: string) {

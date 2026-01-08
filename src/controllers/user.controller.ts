@@ -168,4 +168,20 @@ export class UserController {
             res.status(500).json({ success: false, error: error.message });
         }
     }
+    /**
+     * Seed Data (Demo)
+     */
+    static async seedData(req: Request, res: Response) {
+        try {
+            const userId = (req as any).user?.id;
+            if (!userId) {
+                res.status(401).json({ success: false, error: 'Unauthorized' });
+                return;
+            }
+            const result = await UserService.seedRichData(userId);
+            res.json({ success: true, data: result });
+        } catch (error: any) {
+            res.status(500).json({ success: false, error: error.message });
+        }
+    }
 }
