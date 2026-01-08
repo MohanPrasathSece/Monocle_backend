@@ -1,0 +1,1 @@
+﻿src/routes/intelligence.routes.ts(21,56): error TS2339: Property 'recordActivity' does not exist on type 'typeof IntelligenceController'.
