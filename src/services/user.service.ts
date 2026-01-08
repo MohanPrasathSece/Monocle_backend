@@ -63,7 +63,7 @@ export class UserService {
             await this.seedInitialData(newUser.id);
 
             // Send verification email
-            const verificationLink = `${process.env.FRONTEND_URL || 'http://localhost:8080'}/verify-email?token=${verificationToken}`;
+            const verificationLink = `${process.env.FRONTEND_URL || 'https://monocle-frontend-seven.vercel.app'}/verify-email?token=${verificationToken}`;
             MailService.sendVerificationEmail(email, verificationLink).catch(err =>
                 console.error('Failed to send verification email:', err)
             );
@@ -156,7 +156,7 @@ export class UserService {
             user.resetPasswordExpires = resetExpires;
             await user.save();
 
-            const resetLink = `${process.env.FRONTEND_URL || 'http://localhost:8080'}/reset-password?token=${resetToken}`;
+            const resetLink = `${process.env.FRONTEND_URL || 'https://monocle-frontend-seven.vercel.app'}/reset-password?token=${resetToken}`;
             await MailService.sendPasswordResetEmail(email, resetLink);
         } catch (error: any) {
             console.error('Password reset request error:', error.message);

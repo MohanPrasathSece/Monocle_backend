@@ -66,6 +66,16 @@ app.use((req: Request, res: Response) => {
 app.use((err: Error, req: Request, res: Response, next: any) => {
     console.error('Error:', err);
     console.error('Stack:', err.stack);
+
+    // Log to file for debugging
+    try {
+        const fs = require('fs');
+        const logEntry = `${new Date().toISOString()} - ${req.method} ${req.path} - ${err.message}\n${err.stack}\n\n`;
+        fs.appendFileSync('backend_errors.log', logEntry);
+    } catch (e) {
+        console.error('Failed to write to error log file:', e);
+    }
+
     res.status(500).json({
         success: false,
         error: err.message || 'Internal server error'

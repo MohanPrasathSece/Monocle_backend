@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const OLLAMA_BASE_URL = 'https://69b706a12aa9.ngrok-free.app';
+const OLLAMA_BASE_URL = 'https://ba740c5bab92.ngrok-free.app';
 const MODEL_NAME = 'llama3:8b'; // Using Ollama 3 8b as requested
 
 export const model = {

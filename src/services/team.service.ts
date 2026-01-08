@@ -68,7 +68,7 @@ export class TeamService {
             expiresAt
         });
 
-        const inviteLink = `${process.env.FRONTEND_URL || 'http://localhost:8080'}/teams/join?token=${token}`;
+        const inviteLink = `${process.env.FRONTEND_URL || 'https://monocle-frontend-seven.vercel.app'}/teams/join?token=${token}`;
 
         // Send invitation email
         await MailService.sendTeamInvite(email, team.name, inviteLink);

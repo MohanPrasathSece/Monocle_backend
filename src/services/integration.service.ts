@@ -347,7 +347,7 @@ Respond ONLY in JSON format:
                 throw new Error(`Microsoft Graph API error: ${response.status} ${errorText}`);
             }
 
-            const data = await response.json();
+            const data: any = await response.json();
             const chats = data.value || [];
             let count = 0;
 
@@ -501,6 +501,10 @@ Respond ONLY in JSON format:
 
             if (!response.ok) {
                 const errorText = await response.text();
+                console.error('Microsoft Graph API Error Response:', errorText);
+                if (response.status === 401) {
+                    throw new Error('Microsoft authentication expired. Please reconnect your account.');
+                }
                 throw new Error(`Microsoft Graph API error: ${response.status} ${errorText}`);
             }
 

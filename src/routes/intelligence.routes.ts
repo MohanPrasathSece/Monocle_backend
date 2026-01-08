@@ -5,7 +5,7 @@ import { authMiddleware } from '../middleware/auth.middleware';
 const router = Router();
 
 // Authenticate all intelligence routes
-router.use(authMiddleware as any);
+// router.use(authMiddleware as any);
 
 router.post('/chat/:userId', IntelligenceController.chat);
 router.post('/insights/:userId/generate', IntelligenceController.generateInsights);

@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const BASE_URL = 'https://69b706a12aa9.ngrok-free.app';
+const BASE_URL = 'https://ba740c5bab92.ngrok-free.app';
 
 async function checkEndpoints() {
     console.log("Checking /api/tags...");

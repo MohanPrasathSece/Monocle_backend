@@ -20,7 +20,7 @@ export class WorkItemService {
             if (newItem.assigneeId) {
                 const assignee = await UserService.getUserById(newItem.assigneeId);
                 if (assignee && assignee.email) {
-                    const link = `${process.env.FRONTEND_URL || 'http://localhost:8080'}/dashboard`;
+                    const link = `${process.env.FRONTEND_URL || 'https://monocle-frontend-seven.vercel.app'}/dashboard`;
                     // Fire and forget email to not block response
                     MailService.sendTaskAssignment(assignee.email, newItem.title, link).catch(err =>
                         console.error('Failed to send assignment email:', err)
