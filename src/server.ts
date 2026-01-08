@@ -23,34 +23,12 @@ const app: Application = express();
 const PORT = process.env.PORT || 5000;
 
 // Middleware
-const allowedOrigins = [
-    'http://localhost:8080',
-    'http://localhost:8081',
-    'http://localhost:8082',
-    'http://localhost:5173',
-    'https://monocle-frontend-seven.vercel.app',
-    process.env.CORS_ORIGIN
-].filter(Boolean);
-
 app.use(cors({
-    origin: (origin, callback) => {
-        if (!origin || allowedOrigins.includes(origin)) {
-            callback(null, true);
-        } else {
-            console.warn(`Blocked by CORS: ${origin}`);
-            callback(null, false);
-        }
-    },
+    origin: true, // Allow any origin
     credentials: true
 }));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-
-// Security Headers
-app.use((req, res, next) => {
-    res.setHeader('Cross-Origin-Opener-Policy', 'same-origin-allow-popups');
-    next();
-});
 
 // Request logging middleware
 app.use((req: Request, res: Response, next) => {
