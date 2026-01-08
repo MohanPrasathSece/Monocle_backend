@@ -46,6 +46,13 @@ app.use(cors({
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+// Security Headers
+app.use((req, res, next) => {
+    res.setHeader('Cross-Origin-Opener-Policy', 'same-origin-allow-popups');
+    res.setHeader('Cross-Origin-Embedder-Policy', 'require-corp');
+    next();
+});
+
 // Request logging middleware
 app.use((req: Request, res: Response, next) => {
     console.log(`${new Date().toISOString()} - ${req.method} ${req.path}`);
