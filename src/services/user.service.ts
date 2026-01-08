@@ -8,11 +8,18 @@ import { WorkThreadModel } from '../models/WorkThread';
 import { WorkItemModel } from '../models/WorkItem';
 import { MailService } from './mail.service';
 
-const googleClient = new OAuth2Client(
-    process.env.GOOGLE_CLIENT_ID || '636666241864-fronahev0ijj9vr0a0lue6lhuunqnp87.apps.googleusercontent.com',
-    process.env.GOOGLE_CLIENT_SECRET,
-    'postmessage'
-);
+// Initialized inside methods to ensure env vars are loaded
+let googleClient: OAuth2Client | null = null;
+const getGoogleClient = () => {
+    if (!googleClient) {
+        googleClient = new OAuth2Client(
+            process.env.GOOGLE_CLIENT_ID || '636666241864-fronahev0ijj9vr0a0lue6lhuunqnp87.apps.googleusercontent.com',
+            process.env.GOOGLE_CLIENT_SECRET,
+            'postmessage'
+        );
+    }
+    return googleClient;
+};
 
 export class UserService {
     /**
@@ -192,11 +199,12 @@ export class UserService {
             console.log('Secret:', process.env.GOOGLE_CLIENT_SECRET ? 'Configured' : 'MISSING');
             console.log('Exchanging auth code...');
 
-            const { tokens } = await googleClient.getToken(code);
-            googleClient.setCredentials(tokens);
+            const client = getGoogleClient();
+            const { tokens } = await client.getToken(code);
+            client.setCredentials(tokens);
 
             console.log('Verifying Google ID token...');
-            const ticket = await googleClient.verifyIdToken({
+            const ticket = await client.verifyIdToken({
                 idToken: tokens.id_token!,
                 audience: process.env.GOOGLE_CLIENT_ID || '636666241864-fronahev0ijj9vr0a0lue6lhuunqnp87.apps.googleusercontent.com',
             });
