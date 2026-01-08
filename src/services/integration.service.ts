@@ -456,4 +456,63 @@ Respond ONLY in JSON format:
             throw new Error(`Failed to create meeting: ${error.message}`);
         }
     }
+
+    /**
+     * Create a Microsoft Teams meeting
+     */
+    static async createTeamsMeeting(userId: string, eventDetails: { title: string, description: string, startTime: string, endTime: string, attendees: string[] }): Promise<{ meetingLink: string, joinUrl: string }> {
+        const user = await UserModel.findById(userId);
+        if (!user) throw new Error('User not found');
+
+        const accessToken = user.integrations?.microsoft?.accessToken;
+        if (!accessToken) throw new Error('Microsoft integration not connected');
+
+        const event = {
+            subject: eventDetails.title,
+            body: {
+                contentType: 'HTML',
+                content: eventDetails.description || ''
+            },
+            start: {
+                dateTime: new Date(eventDetails.startTime).toISOString(),
+                timeZone: 'UTC'
+            },
+            end: {
+                dateTime: new Date(eventDetails.endTime).toISOString(),
+                timeZone: 'UTC'
+            },
+            attendees: eventDetails.attendees.map((email: string) => ({
+                emailAddress: { address: email },
+                type: 'required'
+            })),
+            isOnlineMeeting: true,
+            onlineMeetingProvider: 'teamsForBusiness'
+        };
+
+        try {
+            const response = await fetch('https://graph.microsoft.com/v1.0/me/events', {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${accessToken}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(event)
+            });
+
+            if (!response.ok) {
+                const errorText = await response.text();
+                throw new Error(`Microsoft Graph API error: ${response.status} ${errorText}`);
+            }
+
+            const data: any = await response.json();
+
+            return {
+                meetingLink: data.webLink || '',
+                joinUrl: data.onlineMeeting?.joinUrl || ''
+            };
+        } catch (error: any) {
+            console.error('Create Teams Meeting error:', error.message);
+            throw new Error(`Failed to create Teams meeting: ${error.message}`);
+        }
+    }
 }

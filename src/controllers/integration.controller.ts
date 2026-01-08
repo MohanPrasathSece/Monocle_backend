@@ -85,4 +85,38 @@ export class IntegrationController {
             res.status(500).json({ error: error.message });
         }
     }
+
+    static async createTeamsMeeting(req: Request, res: Response) {
+        try {
+            const userId = (req as any).user?.id;
+            if (!userId) {
+                res.status(401).json({ error: 'Unauthorized' });
+                return;
+            }
+
+            const { title, description, startTime, endTime, attendees } = req.body;
+
+            // Basic validation
+            if (!title || !startTime || !endTime) {
+                res.status(400).json({ error: 'Missing required fields: title, startTime, endTime' });
+                return;
+            }
+
+            const result = await IntegrationService.createTeamsMeeting(userId, {
+                title,
+                description,
+                startTime,
+                endTime,
+                attendees: attendees || []
+            });
+
+            res.status(201).json({
+                message: 'Teams meeting created successfully',
+                data: result
+            });
+        } catch (error: any) {
+            console.error('Create Teams Meeting error:', error.message);
+            res.status(500).json({ error: error.message });
+        }
+    }
 }
