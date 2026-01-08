@@ -411,4 +411,49 @@ Respond ONLY in JSON format:
             return 0;
         }
     }
+    /**
+     * Create a Google Calendar event
+     */
+    static async createCalendarEvent(userId: string, eventDetails: { title: string, description: string, startTime: string, endTime: string, attendees: string[] }): Promise<string> {
+        const user = await UserModel.findById(userId);
+        if (!user) throw new Error('User not found');
+
+        const accessToken = user.integrations?.google?.accessToken;
+        if (!accessToken) throw new Error('Google integration not connected');
+
+        const auth = this.createOAuthClient(accessToken, user.integrations?.google?.refreshToken);
+        const calendar = google.calendar({ version: 'v3', auth });
+
+        const event = {
+            summary: eventDetails.title,
+            description: eventDetails.description,
+            start: {
+                dateTime: new Date(eventDetails.startTime).toISOString(),
+            },
+            end: {
+                dateTime: new Date(eventDetails.endTime).toISOString(),
+            },
+            attendees: eventDetails.attendees.map((email: string) => ({ email })),
+            conferenceData: {
+                createRequest: {
+                    requestId: Math.random().toString(36).substring(7),
+                    conferenceSolutionKey: { type: 'hangoutsMeet' }
+                }
+            }
+        };
+
+        try {
+            const res = await calendar.events.insert({
+                calendarId: 'primary',
+                requestBody: event,
+                conferenceDataVersion: 1,
+                sendUpdates: 'all' // Sends email notifications to attendees
+            });
+
+            return res.data.htmlLink || '';
+        } catch (error: any) {
+            console.error('Create Calendar Event error:', error.message);
+            throw new Error(`Failed to create meeting: ${error.message}`);
+        }
+    }
 }

@@ -6,6 +6,7 @@ const router = Router();
 
 router.use(authMiddleware as any);
 router.post('/google/sync', IntegrationController.syncGoogle);
+router.post('/google/calendar/create', IntegrationController.createMeeting);
 router.post('/microsoft/sync', IntegrationController.syncMicrosoft);
 
 export default router;

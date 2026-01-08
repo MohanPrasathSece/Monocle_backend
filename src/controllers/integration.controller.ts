@@ -50,4 +50,39 @@ export class IntegrationController {
             res.status(500).json({ error: error.message });
         }
     }
+    static async createMeeting(req: Request, res: Response) {
+        try {
+            const userId = (req as any).user?.id;
+            if (!userId) {
+                res.status(401).json({ error: 'Unauthorized' });
+                return;
+            }
+
+            const { title, description, startTime, endTime, attendees } = req.body;
+
+            // Basic validation
+            if (!title || !startTime || !endTime) {
+                res.status(400).json({ error: 'Missing required fields: title, startTime, endTime' });
+                return;
+            }
+
+            const meetingLink = await IntegrationService.createCalendarEvent(userId, {
+                title,
+                description,
+                startTime,
+                endTime,
+                attendees: attendees || []
+            });
+
+            res.status(201).json({
+                message: 'Meeting created successfully',
+                data: {
+                    meetingLink
+                }
+            });
+        } catch (error: any) {
+            console.error('Create Meeting error:', error.message);
+            res.status(500).json({ error: error.message });
+        }
+    }
 }
