@@ -101,17 +101,23 @@ export class MailService {
         try {
             if (!this.transporter) await this.init();
 
+            const fromEmail = process.env.SMTP_USER || 'notify@monocle.app';
             const info = await this.transporter.sendMail({
-                from: `"Monocle" <${process.env.SMTP_USER || 'notify@monocle.app'}>`,
+                from: `"Monocle" <${fromEmail}>`,
                 to: toEmail,
                 subject: 'Verify your Monocle account',
                 text: `Welcome to Monocle! Please verify your account by clicking this link: ${verificationLink}`,
                 html: `
-                    <div style="font-family: sans-serif; padding: 20px; border: 1px solid #eee; border-radius: 8px;">
-                        <h2>Welcome to Monocle!</h2>
-                        <p>We're excited to have you on board. Please verify your email address to get started.</p>
-                        <a href="${verificationLink}" style="display: inline-block; padding: 10px 20px; background: #000; color: #fff; text-decoration: none; border-radius: 4px;">Verify Email</a>
-                        <p style="margin-top: 20px; font-size: 12px; color: #666;">If you didn't create an account, you can safely ignore this email.</p>
+                    <div style="font-family: sans-serif; padding: 20px; border: 1px solid #eee; border-radius: 8px; color: #333;">
+                        <h2 style="color: #000;">Welcome to Monocle!</h2>
+                        <p>We're excited to have you on board. Please verify your email address to get started:</p>
+                        <div style="margin: 30px 0;">
+                            <a href="${verificationLink}" style="display: inline-block; padding: 12px 24px; background-color: #000; color: #fff; text-decoration: none; border-radius: 6px; font-weight: bold;">Verify Email</a>
+                        </div>
+                        <p>Or copy and paste this link into your browser:</p>
+                        <p style="font-size: 12px; color: #666; word-break: break-all;">${verificationLink}</p>
+                        <hr style="border: none; border-top: 1px solid #eee; margin: 20px 0;" />
+                        <p style="font-size: 12px; color: #999;">If you didn't create an account, you can safely ignore this email.</p>
                     </div>
                 `,
             });
@@ -127,17 +133,23 @@ export class MailService {
         try {
             if (!this.transporter) await this.init();
 
+            const fromEmail = process.env.SMTP_USER || 'notify@monocle.app';
             const info = await this.transporter.sendMail({
-                from: `"Monocle" <${process.env.SMTP_USER || 'notify@monocle.app'}>`,
+                from: `"Monocle" <${fromEmail}>`,
                 to: toEmail,
                 subject: 'Reset your Monocle password',
                 text: `You requested a password reset. Click this link to set a new password: ${resetLink}. If you didn't request this, ignore this email.`,
                 html: `
-                    <div style="font-family: sans-serif; padding: 20px; border: 1px solid #eee; border-radius: 8px;">
-                        <h2>Password Reset Request</h2>
-                        <p>You requested to reset your password. Click the button below to set a new one.</p>
-                        <a href="${resetLink}" style="display: inline-block; padding: 10px 20px; background: #000; color: #fff; text-decoration: none; border-radius: 4px;">Reset Password</a>
-                        <p style="margin-top: 20px; font-size: 12px; color: #666;">This link will expire in 1 hour. If you didn't request a reset, you can safely ignore this email.</p>
+                    <div style="font-family: sans-serif; padding: 20px; border: 1px solid #eee; border-radius: 8px; color: #333;">
+                        <h2 style="color: #000;">Password Reset Request</h2>
+                        <p>You requested to reset your password. Click the button below to set a new one:</p>
+                        <div style="margin: 30px 0;">
+                            <a href="${resetLink}" style="display: inline-block; padding: 12px 24px; background-color: #000; color: #fff; text-decoration: none; border-radius: 6px; font-weight: bold;">Reset Password</a>
+                        </div>
+                        <p>Or copy and paste this link into your browser:</p>
+                        <p style="font-size: 12px; color: #666; word-break: break-all;">${resetLink}</p>
+                        <hr style="border: none; border-top: 1px solid #eee; margin: 20px 0;" />
+                        <p style="font-size: 12px; color: #999;">This link will expire in 1 hour. If you didn't request a reset, you can safely ignore this email.</p>
                     </div>
                 `,
             });
